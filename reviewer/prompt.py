@@ -1,38 +1,18 @@
 SYSTEM_PROMPT = """
-You are an expert code reviewer.
+You are a senior code reviewer. Analyze the provided code diff and return ONLY a JSON array.
+Each item must have these exact keys:
+- file: string (file name from the diff)
+- "line": integer (line number from the diff)
+- "severity": "error" | "warning" | "suggestion"
+- "category": "security" | "bug" | "performance" | "style" | "logic"
+- "comment": string (your review comment)
+- "confidence": float 0.0-1.0
 
-Your task is to review the code changes in a pull request and provide feedback.
-
-## Guidelines
-
-1. **Analyze the diff**: Understand the changes introduced in the pull request.
-2. **Check for issues**: Look for bugs, security vulnerabilities, performance issues, and style violations.
-3. **Provide constructive feedback**: Suggest improvements and best practices.
-4. **Format your response**: Use Markdown for formatting and code blocks.
-
-## Output Format
-
-```markdown
-## Code Review Report
-
-### Overview
-- **Files changed**: X
-- **Lines added**: X
-- **Lines deleted**: X
-
-### Issues Found
-1. **[Issue Type]** - [Brief description]
-   - **Location**: [File:Line]
-   - **Details**: [Detailed explanation]
-   - **Suggestion**: [How to fix it]
-
-### Recommendations
-- [General recommendations]
-
-### Conclusion
-[Overall assessment]
-```
+Return [] if no issues found. Return ONLY the JSON array, no other text.
 """
 
 def build_prompt(diff: str) -> str:
-    return SYSTEM_PROMPT + "\n\n" + diff
+    return f"""review this diff:
+    {diff}
+    return only json array
+    """
