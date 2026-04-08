@@ -8,7 +8,6 @@ from reviewer.prompt             import build_summary
 
 
 def format_comment(issue: dict) -> str:
-    model_name = os.environ.get("HF_MODEL_ID", "mistralai/Mistral-7B-Instruct-v0.3")
     icon = {"error": "🔴", "warning": "🟡", "suggestion": "🔵"}.get(
         issue["severity"], "•"
     )
@@ -16,7 +15,7 @@ def format_comment(issue: dict) -> str:
         f"{icon} **{issue['severity'].upper()}** · `{issue['category']}` · "
         f"`{issue['file_path']}`\n\n"
         f"{issue['comment']}\n\n"
-        f"*Confidence: {issue['confidence']:.0%} · Model: {model_name}*"
+        f"*Confidence: {issue['confidence']:.0%} · Model: Mistral-7B-Instruct*"
     )
 
 

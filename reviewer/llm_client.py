@@ -5,22 +5,12 @@ import time
 import requests
 from reviewer.prompt import SYSTEM_PROMPT, build_prompt
 
-HF_MODEL_ID = os.environ.get(
-    "HF_MODEL_ID", "mistralai/Mistral-7B-Instruct-v0.3"
-)
-HF_API_URL = os.environ.get(
-    "HF_API_URL", f"https://router.huggingface.co/hf-inference/models/{HF_MODEL_ID}"
+HF_API_URL = (
+    "https://api-inference.huggingface.co/models/"
+    "mistralai/Mistral-7B-Instruct-v0.3"
 )
 MAX_RETRIES = 3
-RETRY_DELAY = 20
-
-
-def _build_candidate_urls() -> list[str]:
-    urls = [HF_API_URL]
-    legacy_url = f"https://api-inference.huggingface.co/models/{HF_MODEL_ID}"
-    if legacy_url not in urls:
-        urls.append(legacy_url)
-    return urls
+RETRY_DELAY = 20  
 
 
 def review_chunk(diff_content: str) -> list[dict]:
@@ -48,39 +38,34 @@ def review_chunk(diff_content: str) -> list[dict]:
         },
     }
 
-    for url in _build_candidate_urls():
-        for attempt in range(1, MAX_RETRIES + 1):
-            try:
-                response = requests.post(
-                    url,
-                    headers=headers,
-                    json=payload,
-                    timeout=60,
-                )
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            response = requests.post(
+                HF_API_URL,
+                headers=headers,
+                json=payload,
+                timeout=60,
+            )
 
-                if response.status_code == 410:
-                    print(f"[llm_client] Endpoint gone (410): {url}")
-                    break
+            if response.status_code == 503:
+                print(f"[llm_client] Model loading, retrying in {RETRY_DELAY}s "
+                      f"(attempt {attempt}/{MAX_RETRIES})...")
+                time.sleep(RETRY_DELAY)
+                continue
 
-                if response.status_code == 503:
-                    print(f"[llm_client] Model loading, retrying in {RETRY_DELAY}s "
-                          f"(attempt {attempt}/{MAX_RETRIES})...")
-                    time.sleep(RETRY_DELAY)
-                    continue
+            response.raise_for_status()
+            data = response.json()
 
-                response.raise_for_status()
-                data = response.json()
+            raw_text = data[0]["generated_text"].strip()
+            return _parse_json_response(raw_text)
 
-                raw_text = data[0]["generated_text"].strip()
-                return _parse_json_response(raw_text)
-
-            except requests.exceptions.Timeout:
-                print(f"[llm_client] Request timed out (attempt {attempt}/{MAX_RETRIES})")
-                if attempt < MAX_RETRIES:
-                    time.sleep(5)
-            except requests.exceptions.RequestException as e:
-                print(f"[llm_client] Request error on {url}: {e}")
-                break
+        except requests.exceptions.Timeout:
+            print(f"[llm_client] Request timed out (attempt {attempt}/{MAX_RETRIES})")
+            if attempt < MAX_RETRIES:
+                time.sleep(5)
+        except requests.exceptions.RequestException as e:
+            print(f"[llm_client] Request error: {e}")
+            break
 
     return []
 
