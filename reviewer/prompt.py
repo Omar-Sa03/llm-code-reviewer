@@ -1,18 +1,55 @@
 SYSTEM_PROMPT = """
 You are a senior code reviewer. Analyze the provided code diff and return ONLY a JSON array.
 Each item must have these exact keys:
-- file: string (file name from the diff)
-- "line": integer (line number from the diff)
+- "line": integer (line number within the chunk, starting at 1)
 - "severity": "error" | "warning" | "suggestion"
 - "category": "security" | "bug" | "performance" | "style" | "logic"
-- "comment": string (your review comment)
-- "confidence": float 0.0-1.0
+- "comment": string
+- "confidence": float between 0.0 and 1.0
 
-Return [] if no issues found. Return ONLY the JSON array, no other text.
+Rules:
+- Return [] if no issues are found
+- Return ONLY the JSON array, no explanation, no markdown fences, no other text
+- Focus only on lines starting with '+' (added lines)
+- Do not flag removed lines (starting with '-')
+""".strip()
+
+
+def build_prompt(diff_content: str) -> str:
+    return f"""Review this code diff and return a JSON array of issues:
+
+{diff_content}
+
+Return ONLY the JSON array."""
+
+
+def build_summary(issues: list, files_reviewed: int, skipped: int) -> str:
+    errors      = sum(1 for i in issues if i["severity"] == "error")
+    warnings    = sum(1 for i in issues if i["severity"] == "warning")
+    suggestions = len(issues) - errors - warnings
+
+    by_file = {}
+    for issue in issues:
+        by_file.setdefault(issue["file_path"], []).append(issue)
+
+    file_lines = "\n".join(
+        f"| `{path}` | {len(file_issues)} |"
+        for path, file_issues in sorted(by_file.items())
+    ) or "| — | 0 |"
+
+    return f"""## LLM Code Review
+
+· **Files reviewed:** {files_reviewed} · **Skipped:** {skipped}
+
+| Severity | Count |
+|----------|-------|
+|  Errors | {errors} |
+|  Warnings | {warnings} |
+|  Suggestions | {suggestions} |
+
+### Issues by file
+| File | Issues |
+|------|--------|
+{file_lines}
+
 """
-
-def build_prompt(diff: str) -> str:
-    return f"""review this diff:
-    {diff}
-    return only json array
-    """
