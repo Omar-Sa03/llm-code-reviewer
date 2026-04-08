@@ -7,7 +7,7 @@ from reviewer.prompt import SYSTEM_PROMPT, build_prompt
 
 HF_API_URL = (
     "https://api-inference.huggingface.co/models/"
-    "mistralai/Mistral-7B-Instruct-v0.3"
+    "Qwen/Qwen2.5-Coder-32B-Instruct"
 )
 MAX_RETRIES = 3
 RETRY_DELAY = 20  
