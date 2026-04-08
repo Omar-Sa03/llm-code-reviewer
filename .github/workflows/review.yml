@@ -34,6 +34,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
           HF_TOKEN: ${{ secrets.HF_TOKEN }}             
+          HF_MODEL_ID: mistralai/Mistral-7B-Instruct-v0.3
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_SHA: ${{ github.event.pull_request.head.sha }}
