@@ -34,3 +34,5 @@ def process_items(items):
     for i in range(len(items)):
         result.append(items[i] * 2)
     return result
+
+# Trigger workflow test
