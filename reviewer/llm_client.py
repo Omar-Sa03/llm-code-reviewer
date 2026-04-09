@@ -10,7 +10,7 @@ HF_ROUTER_URL = "https://router.huggingface.co/v1"
 # Qwen2.5-Coder is excellent at structured output and code understanding.
 # The ":cerebras" suffix routes to Cerebras hardware — fast and free-tier friendly.
 # You can swap to ":sambanova" or ":novita" if you hit rate limits.
-MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct:cerebras"
+MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct"
 
 
 def _get_client() -> OpenAI:

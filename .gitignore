@@ -17,3 +17,6 @@ build/
 # IDE
 .vscode/
 .idea/
+
+# Repomix
+repomix-output.xml
