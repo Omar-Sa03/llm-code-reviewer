@@ -4,12 +4,8 @@ import json
 from openai import OpenAI
 from reviewer.prompt import SYSTEM_PROMPT, build_prompt
 
-# HuggingFace's new Inference Providers router — OpenAI-compatible
 HF_ROUTER_URL = "https://router.huggingface.co/v1"
 
-# Qwen2.5-Coder is excellent at structured output and code understanding.
-# The ":cerebras" suffix routes to Cerebras hardware — fast and free-tier friendly.
-# You can swap to ":sambanova" or ":novita" if you hit rate limits.
 MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct"
 
 
@@ -24,10 +20,7 @@ def _get_client() -> OpenAI:
 
 
 def review_chunk(diff_content: str) -> list[dict]:
-    """
-    Send a diff chunk to HuggingFace Inference Providers and parse
-    the JSON response. Returns [] on any failure.
-    """
+    
     client = _get_client()
 
     try:
@@ -50,16 +43,11 @@ def review_chunk(diff_content: str) -> list[dict]:
 
 
 def _parse_json_response(text: str) -> list[dict]:
-    """
-    Robustly extract a JSON array from the model output.
-    Handles accidental markdown fences and leading/trailing prose.
-    """
-    # Strip ```json ... ``` fences if the model adds them
+    
     text = re.sub(r"```json\s*", "", text)
     text = re.sub(r"```\s*", "", text)
     text = text.strip()
 
-    # Find the first [...] array in the output
     match = re.search(r"\[.*\]", text, re.DOTALL)
     if not match:
         print(f"[llm_client] No JSON array found in response: {text[:200]}")
