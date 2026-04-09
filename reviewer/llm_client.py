@@ -1,81 +1,65 @@
 import os
 import re
 import json
-import time
-import requests
+from openai import OpenAI
 from reviewer.prompt import SYSTEM_PROMPT, build_prompt
 
-HF_API_URL = (
-    "https://api-inference.huggingface.co/models/"
-    "mistralai/Mistral-7B-Instruct-v0.3"
-)
-MAX_RETRIES = 3
-RETRY_DELAY = 20  
+# HuggingFace's new Inference Providers router — OpenAI-compatible
+HF_ROUTER_URL = "https://router.huggingface.co/v1"
+
+# Qwen2.5-Coder is excellent at structured output and code understanding.
+# The ":cerebras" suffix routes to Cerebras hardware — fast and free-tier friendly.
+# You can swap to ":sambanova" or ":novita" if you hit rate limits.
+MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct"
 
 
-def review_chunk(diff_content: str) -> list[dict]:
-
+def _get_client() -> OpenAI:
     token = os.environ.get("HF_TOKEN")
     if not token:
         raise EnvironmentError("HF_TOKEN environment variable is not set.")
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-    }
-
-    formatted_prompt = (
-        f"[INST] {SYSTEM_PROMPT}\n\n{build_prompt(diff_content)} [/INST]"
+    return OpenAI(
+        base_url=HF_ROUTER_URL,
+        api_key=token,
     )
 
-    payload = {
-        "inputs": formatted_prompt,
-        "parameters": {
-            "max_new_tokens": 1024,
-            "temperature": 0.1,        
-            "return_full_text": False,  
-            "do_sample": True,
-        },
-    }
 
-    for attempt in range(1, MAX_RETRIES + 1):
-        try:
-            response = requests.post(
-                HF_API_URL,
-                headers=headers,
-                json=payload,
-                timeout=60,
-            )
+def review_chunk(diff_content: str) -> list[dict]:
+    """
+    Send a diff chunk to HuggingFace Inference Providers and parse
+    the JSON response. Returns [] on any failure.
+    """
+    client = _get_client()
 
-            if response.status_code == 503:
-                print(f"[llm_client] Model loading, retrying in {RETRY_DELAY}s "
-                      f"(attempt {attempt}/{MAX_RETRIES})...")
-                time.sleep(RETRY_DELAY)
-                continue
+    try:
+        response = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user",   "content": build_prompt(diff_content)},
+            ],
+            max_tokens=1024,
+            temperature=0.1,   
+        )
 
-            response.raise_for_status()
-            data = response.json()
+        raw_text = response.choices[0].message.content or ""
+        return _parse_json_response(raw_text.strip())
 
-            raw_text = data[0]["generated_text"].strip()
-            return _parse_json_response(raw_text)
-
-        except requests.exceptions.Timeout:
-            print(f"[llm_client] Request timed out (attempt {attempt}/{MAX_RETRIES})")
-            if attempt < MAX_RETRIES:
-                time.sleep(5)
-        except requests.exceptions.RequestException as e:
-            print(f"[llm_client] Request error: {e}")
-            break
-
-    return []
+    except Exception as e:
+        print(f"[llm_client] Error calling HF Inference Providers: {e}")
+        return []
 
 
 def _parse_json_response(text: str) -> list[dict]:
-
+    """
+    Robustly extract a JSON array from the model output.
+    Handles accidental markdown fences and leading/trailing prose.
+    """
+    # Strip ```json ... ``` fences if the model adds them
     text = re.sub(r"```json\s*", "", text)
     text = re.sub(r"```\s*", "", text)
     text = text.strip()
 
+    # Find the first [...] array in the output
     match = re.search(r"\[.*\]", text, re.DOTALL)
     if not match:
         print(f"[llm_client] No JSON array found in response: {text[:200]}")
