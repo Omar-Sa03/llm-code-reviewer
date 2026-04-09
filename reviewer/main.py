@@ -15,7 +15,7 @@ def format_comment(issue: dict) -> str:
         f"{icon} **{issue['severity'].upper()}** · `{issue['category']}` · "
         f"`{issue['file_path']}`\n\n"
         f"{issue['comment']}\n\n"
-        f"*Confidence: {issue['confidence']:.0%} · Model: Mistral-7B-Instruct*"
+        f"*Confidence: {issue['confidence']:.0%} "
     )
 
 
