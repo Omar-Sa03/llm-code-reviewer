@@ -20,7 +20,7 @@ def _get_client() -> OpenAI:
 
 
 def review_chunk(diff_content: str) -> list[dict]:
-    
+
     client = _get_client()
 
     try:
@@ -43,7 +43,7 @@ def review_chunk(diff_content: str) -> list[dict]:
 
 
 def _parse_json_response(text: str) -> list[dict]:
-    
+
     text = re.sub(r"```json\s*", "", text)
     text = re.sub(r"```\s*", "", text)
     text = text.strip()
