@@ -15,20 +15,24 @@ def format_comment(issue: dict) -> str:
         f"{icon} **{issue['severity'].upper()}** · `{issue['category']}` · "
         f"`{issue['file_path']}`\n\n"
         f"{issue['comment']}\n\n"
-        f"*Confidence: {issue['confidence']:.0%} "
+        f"*Confidence: {issue['confidence']:.0%}*"
     )
 
 
-def map_to_local_line(hunk_content: str, relative_line: int, start_line: int) -> int:
-    """Calculates the real file line number for a given hunk relative index."""
+def annotate_diff(hunk_content: str, start_line: int) -> str:
+    """Prefixes each line of the diff with its actual file line number."""
     lines = hunk_content.splitlines()
-    new_file_line = start_line
-    for i, line in enumerate(lines):
-        if i + 1 == relative_line:
-            return new_file_line
-        if not line.startswith("-"):
-            new_file_line += 1
-    return new_file_line
+    annotated = []
+    curr_line = start_line
+    for line in lines:
+        if line.startswith("+") or line.startswith(" "):
+            annotated.append(f"{curr_line:4} | {line}")
+            curr_line += 1
+        elif line.startswith("-"):
+            annotated.append(f"     | {line}")
+        else:
+            annotated.append(f"     | {line}")
+    return "\n".join(annotated)
 
 
 def main():
@@ -53,13 +57,14 @@ def main():
         print(f"[main] Reviewing {chunk.file_path} (starts at line {chunk.start_line})...")
         files_reviewed += 1
 
-        issues = review_chunk(chunk.content)
+        annotated_content = annotate_diff(chunk.content, chunk.start_line)
+        issues = review_chunk(annotated_content)
         print(f"[main]   → {len(issues)} raw issues found")
 
         for issue in issues:
             issue["file_path"] = chunk.file_path
-            relative_line = max(1, int(issue.get("line", 1)))
-            issue["line"] = map_to_local_line(chunk.content, relative_line, chunk.start_line)
+            # The LLM now returns absolute line numbers as seen in the annotated diff
+            issue["line"] = int(issue.get("line", chunk.start_line))
 
         all_issues.extend(issues)
 
