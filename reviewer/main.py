@@ -19,6 +19,18 @@ def format_comment(issue: dict) -> str:
     )
 
 
+def map_to_local_line(hunk_content: str, relative_line: int, start_line: int) -> int:
+    """Calculates the real file line number for a given hunk relative index."""
+    lines = hunk_content.splitlines()
+    new_file_line = start_line
+    for i, line in enumerate(lines):
+        if i + 1 == relative_line:
+            return new_file_line
+        if not line.startswith("-"):
+            new_file_line += 1
+    return new_file_line
+
+
 def main():
     gh = GitHubClient()
 
@@ -47,7 +59,7 @@ def main():
         for issue in issues:
             issue["file_path"] = chunk.file_path
             relative_line = max(1, int(issue.get("line", 1)))
-            issue["line"] = chunk.start_line + relative_line - 1
+            issue["line"] = map_to_local_line(chunk.content, relative_line, chunk.start_line)
 
         all_issues.extend(issues)
 

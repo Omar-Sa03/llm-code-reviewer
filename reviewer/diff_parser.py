@@ -30,36 +30,33 @@ def should_skip(file_path: str) -> bool:
 
 
 def parse_diff(raw_diff: str) -> Generator[DiffChunk, None, None]:
-
     current_file = None
     current_lines: list[str] = []
     current_start = 1
 
+    def flush():
+        nonlocal current_lines
+        if current_file and current_lines:
+            yield DiffChunk(
+                file_path=current_file,
+                content="\n".join(current_lines),
+                start_line=current_start,
+            )
+            current_lines = []
+
     for line in raw_diff.splitlines():
         if line.startswith("+++ b/"):
-            # Flush previous file
-            if current_file and current_lines:
-                yield DiffChunk(
-                    file_path=current_file,
-                    content="\n".join(current_lines),
-                    start_line=current_start,
-                )
+            yield from flush()
             current_file = line[6:].strip()
-            current_lines = []
             current_start = 1
-
         elif line.startswith("@@ "):
+            yield from flush()
             match = re.search(r"\+(\d+)", line)
             if match:
                 current_start = int(match.group(1))
-            current_lines = []
-
         elif current_file:
+            if line.startswith("--- ") or line.startswith("index "):
+                continue
             current_lines.append(line)
 
-    if current_file and current_lines:
-        yield DiffChunk(
-            file_path=current_file,
-            content="\n".join(current_lines),
-            start_line=current_start,
-        )
+    yield from flush()
