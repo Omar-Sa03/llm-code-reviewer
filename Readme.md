@@ -165,7 +165,3 @@ python -m pytest tests/ -v
 The test suite covers the diff parser, confidence filter, prompt builder, JSON response parser, and a full end-to-end pipeline run with all external HTTP calls mocked.
 
 ---
-
-## License
-
-MIT
