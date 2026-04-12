@@ -1,0 +1,46 @@
+name: LLM Code Reviewer
+description: AI-powered pull request code review using a Hugging Face hosted model.
+
+inputs:
+  hf_token:
+    description: Hugging Face API token for model inference.
+    required: true
+  model:
+    description: The Hugging Face model to use for review.
+    required: false
+    default: Qwen/Qwen2.5-Coder-32B-Instruct
+  max_comments:
+    description: Maximum number of review comments to post per run.
+    required: false
+    default: "8"
+  max_comments_per_file:
+    description: Maximum number of review comments per file.
+    required: false
+    default: "3"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        cache: pip
+
+    - name: Install dependencies
+      run: pip install -r ${{ github.action_path }}/requirements.txt
+      shell: bash
+
+    - name: Run LLM reviewer
+      run: python -m reviewer.main
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        HF_TOKEN: ${{ inputs.hf_token }}
+        MODEL_NAME: ${{ inputs.model }}
+        MAX_COMMENTS_TOTAL: ${{ inputs.max_comments }}
+        MAX_COMMENTS_PER_FILE: ${{ inputs.max_comments_per_file }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_SHA: ${{ github.event.pull_request.head.sha }}
+        PYTHONPATH: ${{ github.action_path }}

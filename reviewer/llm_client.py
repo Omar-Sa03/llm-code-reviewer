@@ -6,7 +6,7 @@ from reviewer.prompt import SYSTEM_PROMPT, build_prompt
 
 HF_ROUTER_URL = "https://router.huggingface.co/v1"
 
-MODEL = "Qwen/Qwen2.5-Coder-32B-Instruct"
+MODEL = os.environ.get("MODEL_NAME", "Qwen/Qwen2.5-Coder-32B-Instruct")
 
 
 def _get_client() -> OpenAI:
@@ -31,7 +31,7 @@ def review_chunk(diff_content: str) -> list[dict]:
                 {"role": "user",   "content": build_prompt(diff_content)},
             ],
             max_tokens=1024,
-            temperature=0.1,   
+            temperature=0.1,
         )
 
         raw_text = response.choices[0].message.content or ""

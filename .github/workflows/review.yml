@@ -9,10 +9,10 @@ on:
 
 jobs:
   review:
-    runs-on: ubuntu-latest      
+    runs-on: ubuntu-latest
 
     permissions:
-      pull-requests: write      
+      pull-requests: write
       contents: read
 
     steps:
@@ -21,20 +21,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Run LLM Reviewer
+        uses: Omar-Sa03/llm-code-reviewer@v1
         with:
-          python-version: "3.11"
-          cache: pip
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run LLM reviewer
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}             
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_SHA: ${{ github.event.pull_request.head.sha }}
-        run: python -m reviewer.main
+          hf_token: ${{ secrets.HF_TOKEN }}
+          # Optional overrides:
+          # model: Qwen/Qwen2.5-Coder-32B-Instruct
+          # max_comments: "8"
+          # max_comments_per_file: "3"

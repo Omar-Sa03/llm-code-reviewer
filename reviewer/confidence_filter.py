@@ -1,3 +1,4 @@
+import os
 from typing import Any
 
 SEVERITY_THRESHOLDS = {
@@ -6,8 +7,8 @@ SEVERITY_THRESHOLDS = {
     "suggestion": 0.88,
 }
 
-MAX_COMMENTS_PER_FILE = 3   
-MAX_COMMENTS_TOTAL    = 8   
+MAX_COMMENTS_PER_FILE = int(os.environ.get("MAX_COMMENTS_PER_FILE", 3))
+MAX_COMMENTS_TOTAL    = int(os.environ.get("MAX_COMMENTS_TOTAL", 8))
 
 
 def filter_issues(issues: list[dict[str, Any]]) -> list[dict[str, Any]]:
