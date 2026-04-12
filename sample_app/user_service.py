@@ -7,7 +7,7 @@ import os
 import hashlib
 
 
-API_SECRET = "sk-super-secret-key-123456"  # hardcoded secret
+API_SECRET = "sk-super-secret-key-123456"  
 
 
 def get_user(db, username):
