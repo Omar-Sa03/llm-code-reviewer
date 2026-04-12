@@ -25,7 +25,3 @@ jobs:
         uses: Omar-Sa03/llm-code-reviewer@v1
         with:
           hf_token: ${{ secrets.HF_TOKEN }}
-          # Optional overrides:
-          # model: Qwen/Qwen2.5-Coder-32B-Instruct
-          # max_comments: "8"
-          # max_comments_per_file: "3"
