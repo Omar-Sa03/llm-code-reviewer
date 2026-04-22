@@ -61,3 +61,6 @@ def test_skip_generated_files():
 def test_empty_diff():
     chunks = list(parse_diff(""))
     assert chunks == []
+
+# run tests
+# pytest tests/test_diff_parser.py
