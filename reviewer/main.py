@@ -34,14 +34,12 @@ from reviewer.cost_estimator import estimate_cost
 
 
 def format_comment(issue: dict) -> str:
-    icon = {"error": "🔴", "warning": "🟡", "suggestion": "🔵"}.get(
+    icon = {"error": "🔴", "warning": "🟡", "suggestion": "💡"}.get(
         issue["severity"], "•"
     )
     return (
-        f"{icon} **{issue['severity'].upper()}** · `{issue['category']}` · "
-        f"`{issue['file_path']}`\n\n"
-        f"{issue['comment']}\n\n"
-        f"*Confidence: {issue['confidence']:.0%}*"
+        f"{icon} **{issue['category']}**\n\n"
+        f"{issue['comment']}"
     )
 
 

@@ -1,6 +1,6 @@
 {
-  "run_id": "8909d633",
-  "timestamp": "2026-08-10T10:34:58.906714+00:00",
+  "run_id": "e5385552",
+  "timestamp": "2026-08-10T14:06:00.568465+00:00",
   "model": "Qwen/Qwen2.5-Coder-32B-Instruct",
   "provider": "huggingface",
   "prompt_version": "v2",
@@ -20,7 +20,7 @@
       "token_estimate": 42,
       "raw_issues": 1,
       "kept_issues": 0,
-      "llm_duration_ms": 0.1,
+      "llm_duration_ms": 0.3,
       "llm_errors": 0
     }
   ]

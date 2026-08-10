@@ -18,24 +18,33 @@ def build_summary(issues: list, files_reviewed: int, skipped: int) -> str:
     for issue in issues:
         by_file.setdefault(issue["file_path"], []).append(issue)
 
-    file_lines = "\n".join(
-        f"| `{path}` | {len(file_issues)} |"
-        for path, file_issues in sorted(by_file.items())
-    ) or "| — | 0 |"
+    total = len(issues)
 
-    return f"""## 🤖 LLM Code Review
+    # One-line summary
+    if total == 0:
+        headline = "No issues found — looks good! ✅"
+    else:
+        parts = []
+        if errors:
+            parts.append(f"{errors} error{'s' if errors != 1 else ''}")
+        if warnings:
+            parts.append(f"{warnings} warning{'s' if warnings != 1 else ''}")
+        if suggestions:
+            parts.append(f"{suggestions} suggestion{'s' if suggestions != 1 else ''}")
+        headline = f"Found {', '.join(parts)} across {len(by_file)} file{'s' if len(by_file) != 1 else ''}."
 
-**Files reviewed:** {files_reviewed} &nbsp;·&nbsp; **Skipped:** {skipped}
+    # Per-file breakdown (only if there are issues)
+    file_section = ""
+    if by_file:
+        file_lines = "\n".join(
+            f"- `{path}` — {len(fi)} issue{'s' if len(fi) != 1 else ''}"
+            for path, fi in sorted(by_file.items())
+        )
+        file_section = f"\n\n{file_lines}"
 
-| Severity | Count |
-|----------|-------|
-| 🔴 Errors | {errors} |
-| 🟡 Warnings | {warnings} |
-| 🔵 Suggestions | {suggestions} |
+    return f"""### Code Review Summary
 
-### Issues by file
-| File | Issues |
-|------|--------|
-{file_lines}
+{headline}
 
+Reviewed **{files_reviewed}** file{'s' if files_reviewed != 1 else ''}{f', skipped {skipped}' if skipped else ''}.{file_section}
 """

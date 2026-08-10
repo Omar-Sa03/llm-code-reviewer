@@ -94,8 +94,8 @@ def test_build_summary_format():
         {"severity": "suggestion", "file_path": "y.py"},
     ]
     summary = build_summary(issues, files_reviewed=3, skipped=1)
-    assert "LLM Code Review" in summary
-    assert "Files reviewed" in summary
+    assert "Code Review Summary" in summary
+    assert "Reviewed" in summary
     assert "x.py" in summary
 
 

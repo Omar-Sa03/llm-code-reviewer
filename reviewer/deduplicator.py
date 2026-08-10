@@ -19,10 +19,9 @@ log = get_logger(__name__)
 
 def _format_comment_body(issue: dict) -> str:
     """Minimal formatting used only for fingerprinting (avoids circular import)."""
-    icon = {"error": "🔴", "warning": "🟡", "suggestion": "🔵"}.get(issue["severity"], "•")
+    icon = {"error": "🔴", "warning": "🟡", "suggestion": "💡"}.get(issue["severity"], "•")
     return (
-        f"{icon} **{issue['severity'].upper()}** · `{issue['category']}` · "
-        f"`{issue['file_path']}`\n\n"
+        f"{icon} **{issue['category']}**\n\n"
         f"{issue['comment']}"
     )
 
