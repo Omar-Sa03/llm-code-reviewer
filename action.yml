@@ -1,23 +1,44 @@
 name: "LLM Code Reviewer"
-description: "An automated code review tool that uses LLMs to review PR diffs."
+description: "Automated AI code review on every pull request — posts inline comments for security issues, bugs, performance problems, and logic errors."
 author: "Omar-Sa03"
+
+branding:
+  icon: "eye"
+  color: "purple"
 
 inputs:
   hf_token:
-    description: "Hugging Face API token"
-    required: true
+    description: "Hugging Face API token (required for huggingface provider)"
+    required: false
+    default: ""
   model:
-    description: "Hugging Face model to use"
+    description: "Model name (e.g. Qwen/Qwen2.5-Coder-32B-Instruct, gpt-4o-mini)"
     required: false
     default: "Qwen/Qwen2.5-Coder-32B-Instruct"
+  provider:
+    description: "LLM provider: huggingface | openai | anthropic | groq | openrouter"
+    required: false
+    default: "huggingface"
   max_comments:
-    description: "Maximum number of comments posted across the entire PR"
+    description: "Maximum number of inline comments posted across the entire PR"
     required: false
     default: "8"
   max_comments_per_file:
-    description: "Maximum number of comments posted on any single file"
+    description: "Maximum number of inline comments posted on any single file"
     required: false
     default: "3"
+  prompt_version:
+    description: "Prompt version to use: v1 (original) | v2 (chain-of-thought, recommended)"
+    required: false
+    default: "v2"
+  cost_limit_usd:
+    description: "Estimated USD cost limit per review run. Chunks that would exceed this are skipped."
+    required: false
+    default: "0.10"
+  max_diff_tokens:
+    description: "Maximum estimated token count per diff chunk. Oversized chunks are skipped."
+    required: false
+    default: "6000"
 
 runs:
   using: "composite"
@@ -31,19 +52,30 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r ${{ github.action_path }}/requirements.txt
 
     - name: Run Reviewer
       shell: bash
       env:
-        HF_TOKEN: ${{ inputs.hf_token }}
-        MODEL_NAME: ${{ inputs.model }}
-        MAX_COMMENTS_TOTAL: ${{ inputs.max_comments }}
+        HF_TOKEN:              ${{ inputs.hf_token }}
+        MODEL_NAME:            ${{ inputs.model }}
+        LLM_PROVIDER:          ${{ inputs.provider }}
+        MAX_COMMENTS_TOTAL:    ${{ inputs.max_comments }}
         MAX_COMMENTS_PER_FILE: ${{ inputs.max_comments_per_file }}
-        GITHUB_TOKEN: ${{ github.token }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-        PR_SHA: ${{ github.event.pull_request.head.sha }}
-        PYTHONPATH: ${{ github.action_path }}
+        PROMPT_VERSION:        ${{ inputs.prompt_version }}
+        COST_LIMIT_USD:        ${{ inputs.cost_limit_usd }}
+        MAX_DIFF_TOKENS:       ${{ inputs.max_diff_tokens }}
+        GITHUB_TOKEN:          ${{ github.token }}
+        GITHUB_REPOSITORY:     ${{ github.repository }}
+        PR_NUMBER:             ${{ github.event.pull_request.number }}
+        PR_SHA:                ${{ github.event.pull_request.head.sha }}
+        PYTHONPATH:            ${{ github.action_path }}
       run: python -m reviewer.main
 
+    - name: Upload review metrics
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: review-metrics-pr${{ github.event.pull_request.number }}-run${{ github.run_id }}
+        path: review_metrics.json
+        retention-days: 90
