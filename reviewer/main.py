@@ -55,7 +55,7 @@ def annotate_diff(hunk_content: str, start_line: int) -> str:
     return "\n".join(annotated)
 
 
-def main():
+def main() -> None:
     cfg = load_config()
     configure_logger(run_id=cfg.run_id, model=cfg.model_name)
     log = get_logger(__name__)

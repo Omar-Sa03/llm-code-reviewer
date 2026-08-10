@@ -1,6 +1,8 @@
 """Prompt definitions package — versioned so A/B comparisons are reproducible."""
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from reviewer.prompts.v1 import SYSTEM_PROMPT as _V1_SYSTEM
 from reviewer.prompts.v1 import build_prompt as _v1_build
 from reviewer.prompts.v2 import SYSTEM_PROMPT as _V2_SYSTEM
@@ -12,7 +14,7 @@ _VERSIONS = {
 }
 
 
-def get_prompt(version: str = "v2") -> tuple[str, object]:
+def get_prompt(version: str = "v2") -> tuple[str, Callable[[str], str]]:
     """
     Return (system_prompt, build_prompt_fn) for the requested version.
 

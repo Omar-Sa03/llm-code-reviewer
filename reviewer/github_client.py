@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -35,10 +35,8 @@ def _make_session(token: str) -> requests.Session:
         backoff_factor=1.0,
         status_forcelist={500, 502, 503, 504},
         allowed_methods={"GET", "POST", "PATCH"},
-        raise_on_status=False,
     )
-    adapter = HTTPAdapter(max_retries=retry_policy)
-    session.mount("https://", adapter)
+    session.mount("https://", HTTPAdapter(max_retries=retry_policy))
     return session
 
 
@@ -46,12 +44,10 @@ class GitHubClient:
     def __init__(self, cfg: Config | None = None):
         # Support legacy env-var usage (no Config) for backward compatibility
         token = (cfg.github_token if cfg else None) or os.environ["GITHUB_TOKEN"]
-        repo  = (cfg.github_repository if cfg else None) or os.environ["GITHUB_REPOSITORY"]
-        pr_no = (cfg.pr_number if cfg else None) or int(os.environ["PR_NUMBER"])
+        self._session = _make_session(token)
 
-        self.repo      = repo
-        self.pr_number = pr_no
-        self._session  = _make_session(token)
+        self.repo = (cfg.github_repository if cfg else None) or os.environ["GITHUB_REPOSITORY"]
+        self.pr_number = (cfg.pr_number if cfg else None) or int(os.environ["PR_NUMBER"])
 
     # ── Read operations ────────────────────────────────────────────────────
 
@@ -60,12 +56,13 @@ class GitHubClient:
         r = self._session.get(
             url,
             headers={"Accept": "application/vnd.github.v3.diff"},
-            timeout=30,
+            timeout=15,
         )
         r.raise_for_status()
         return r.text
 
     def get_pr_head_sha(self) -> str:
+        """Fetch the PR metadata to determine the latest commit SHA."""
         url = f"{_GITHUB_API}/repos/{self.repo}/pulls/{self.pr_number}"
         r = self._session.get(url, timeout=15)
         r.raise_for_status()
@@ -104,7 +101,7 @@ class GitHubClient:
         self, commit_sha: str, path: str, line: int, body: str
     ) -> bool:
         url = f"{_GITHUB_API}/repos/{self.repo}/pulls/{self.pr_number}/comments"
-        payload = {
+        payload: dict[str, Any] = {
             "body":      body,
             "commit_id": commit_sha,
             "path":      path,
