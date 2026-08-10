@@ -62,27 +62,27 @@ def _make_client(provider: str, api_key: str, timeout: float = 30.0) -> OpenAI:
     return OpenAI(base_url=base_url, api_key=api_key, timeout=timeout)
 
 
-def _resolve_api_key(provider: str, cfg: "Config") -> str:
+def _resolve_api_key(provider: str, cfg: Config) -> str:
     """Return the correct API key for the chosen provider."""
     if provider == "huggingface":
         key = cfg.hf_token or os.environ.get("HF_TOKEN", "")
         if not key:
-            raise EnvironmentError("HF_TOKEN is required for the huggingface provider.")
+            raise OSError("HF_TOKEN is required for the huggingface provider.")
         return key
     if provider == "openai":
         key = os.environ.get("OPENAI_API_KEY", "")
         if not key:
-            raise EnvironmentError("OPENAI_API_KEY is required for the openai provider.")
+            raise OSError("OPENAI_API_KEY is required for the openai provider.")
         return key
     if provider == "anthropic":
         key = os.environ.get("ANTHROPIC_API_KEY", "")
         if not key:
-            raise EnvironmentError("ANTHROPIC_API_KEY is required for the anthropic provider.")
+            raise OSError("ANTHROPIC_API_KEY is required for the anthropic provider.")
         return key
     if provider == "groq":
         key = os.environ.get("GROQ_API_KEY", "")
         if not key:
-            raise EnvironmentError(
+            raise OSError(
                 "GROQ_API_KEY is required for the groq provider. "
                 "Get a free key at https://console.groq.com/"
             )
@@ -90,7 +90,7 @@ def _resolve_api_key(provider: str, cfg: "Config") -> str:
     if provider == "openrouter":
         key = os.environ.get("OPENROUTER_API_KEY", "")
         if not key:
-            raise EnvironmentError(
+            raise OSError(
                 "OPENROUTER_API_KEY is required for the openrouter provider. "
                 "Get a free key at https://openrouter.ai/"
             )
@@ -127,7 +127,7 @@ def _is_retriable(exc: Exception) -> bool:
     return False
 
 
-def review_chunk(diff_content: str, cfg: "Config") -> list[dict]:
+def review_chunk(diff_content: str, cfg: Config) -> list[dict]:
     """
     Review a single diff chunk and return a list of issue dicts.
 
@@ -186,7 +186,7 @@ def review_chunk(diff_content: str, cfg: "Config") -> list[dict]:
     # ── Primary attempt ────────────────────────────────────────────────────
     try:
         return attempt(cfg.provider, cfg.model_name)
-    except (RetryExhausted, RuntimeError, EnvironmentError, ValueError) as primary_exc:
+    except (OSError, RetryExhausted, RuntimeError, ValueError) as primary_exc:
         log.error("Primary LLM call failed: %s", primary_exc)
 
         # ── Fallback attempt ───────────────────────────────────────────────
@@ -199,7 +199,7 @@ def review_chunk(diff_content: str, cfg: "Config") -> list[dict]:
             )
             try:
                 return attempt(fallback_provider, cfg.fallback_model)
-            except (RetryExhausted, RuntimeError, EnvironmentError, ValueError) as fallback_exc:
+            except (OSError, RetryExhausted, RuntimeError, ValueError) as fallback_exc:
                 log.error("Fallback LLM call also failed: %s", fallback_exc)
 
         return []

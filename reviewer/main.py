@@ -18,19 +18,17 @@ Flow:
 """
 from __future__ import annotations
 
-import os
-import sys
-
-from reviewer.config         import load_config
-from reviewer.github_client  import GitHubClient
-from reviewer.diff_parser    import parse_diff, should_skip
-from reviewer.llm_client     import review_chunk, _estimate_tokens
 from reviewer.confidence_filter import filter_issues
-from reviewer.prompt         import build_summary
-from reviewer.logger         import get_logger, configure as configure_logger
-from reviewer.metrics        import Metrics
-from reviewer.deduplicator   import deduplicate, fingerprint_issue
+from reviewer.config import load_config
 from reviewer.cost_estimator import estimate_cost
+from reviewer.deduplicator import deduplicate
+from reviewer.diff_parser import parse_diff, should_skip
+from reviewer.github_client import GitHubClient
+from reviewer.llm_client import _estimate_tokens, review_chunk
+from reviewer.logger import configure as configure_logger
+from reviewer.logger import get_logger
+from reviewer.metrics import Metrics
+from reviewer.prompt import build_summary
 
 
 def format_comment(issue: dict) -> str:

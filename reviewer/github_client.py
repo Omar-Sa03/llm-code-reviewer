@@ -3,8 +3,8 @@ GitHub API client with connection pooling, retry, and deduplication support.
 """
 from __future__ import annotations
 
-import os
 import hashlib
+import os
 from typing import TYPE_CHECKING
 
 import requests
@@ -43,7 +43,7 @@ def _make_session(token: str) -> requests.Session:
 
 
 class GitHubClient:
-    def __init__(self, cfg: "Config | None" = None):
+    def __init__(self, cfg: Config | None = None):
         # Support legacy env-var usage (no Config) for backward compatibility
         token = (cfg.github_token if cfg else None) or os.environ["GITHUB_TOKEN"]
         repo  = (cfg.github_repository if cfg else None) or os.environ["GITHUB_REPOSITORY"]

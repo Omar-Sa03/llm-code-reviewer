@@ -5,8 +5,11 @@ New code should import from ``reviewer.prompts`` directly.
 This module re-exports the active prompt (defaulting to v2) so existing
 imports continue to work without changes.
 """
-from reviewer.prompts.v2 import SYSTEM_PROMPT, build_prompt  # noqa: F401
-from reviewer.prompts.v2 import PROMPT_VERSION               # noqa: F401
+from reviewer.prompts.v2 import (  # noqa: F401
+    PROMPT_VERSION,  # noqa: F401
+    SYSTEM_PROMPT,
+    build_prompt,
+)
 
 
 def build_summary(issues: list, files_reviewed: int, skipped: int) -> str:

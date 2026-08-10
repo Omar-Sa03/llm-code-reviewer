@@ -1,5 +1,4 @@
-from reviewer.diff_parser import parse_diff, should_skip, DiffChunk
-
+from reviewer.diff_parser import parse_diff, should_skip
 
 SAMPLE_DIFF = """\
 diff --git a/app/auth.py b/app/auth.py

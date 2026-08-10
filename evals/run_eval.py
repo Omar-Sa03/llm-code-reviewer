@@ -37,8 +37,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from reviewer.config import load_config
-from reviewer.llm_client import review_chunk, _estimate_tokens
-from reviewer.prompts import get_prompt
+from reviewer.llm_client import review_chunk
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 RESULTS_DIR  = Path(__file__).parent / "results"
