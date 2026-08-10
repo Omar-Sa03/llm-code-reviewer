@@ -20,3 +20,8 @@ build/
 
 # Repomix
 repomix-output.xml
+
+# Runtime artifacts
+review_metrics.json
+scratch/
+.ruff_cache/

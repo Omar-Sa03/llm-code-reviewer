@@ -1,0 +1,10 @@
+import sqlite3
+
+def login(user, password):
+    conn = sqlite3.connect("test.db")
+    cursor = conn.cursor()
+    # SQL Injection!
+    cursor.execute(f"SELECT * FROM users WHERE pass=\"{password}\"")
+    
+    # Hardcoded secret!
+    api_key = "AKIAIOSFODNN7EXAMPLE"

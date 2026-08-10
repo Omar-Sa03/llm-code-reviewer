@@ -18,30 +18,26 @@ Flow:
 """
 from __future__ import annotations
 
-import os
-import sys
-
-from reviewer.config         import load_config
-from reviewer.github_client  import GitHubClient
-from reviewer.diff_parser    import parse_diff, should_skip
-from reviewer.llm_client     import review_chunk, _estimate_tokens
 from reviewer.confidence_filter import filter_issues
-from reviewer.prompt         import build_summary
-from reviewer.logger         import get_logger, configure as configure_logger
-from reviewer.metrics        import Metrics
-from reviewer.deduplicator   import deduplicate, fingerprint_issue
+from reviewer.config import load_config
 from reviewer.cost_estimator import estimate_cost
+from reviewer.deduplicator import deduplicate
+from reviewer.diff_parser import parse_diff, should_skip
+from reviewer.github_client import GitHubClient
+from reviewer.llm_client import _estimate_tokens, review_chunk
+from reviewer.logger import configure as configure_logger
+from reviewer.logger import get_logger
+from reviewer.metrics import Metrics
+from reviewer.prompt import build_summary
 
 
 def format_comment(issue: dict) -> str:
-    icon = {"error": "🔴", "warning": "🟡", "suggestion": "🔵"}.get(
+    icon = {"error": "🔴", "warning": "🟡", "suggestion": "💡"}.get(
         issue["severity"], "•"
     )
     return (
-        f"{icon} **{issue['severity'].upper()}** · `{issue['category']}` · "
-        f"`{issue['file_path']}`\n\n"
-        f"{issue['comment']}\n\n"
-        f"*Confidence: {issue['confidence']:.0%}*"
+        f"{icon} **{issue['category']}**\n\n"
+        f"{issue['comment']}"
     )
 
 
@@ -59,7 +55,7 @@ def annotate_diff(hunk_content: str, start_line: int) -> str:
     return "\n".join(annotated)
 
 
-def main():
+def main() -> None:
     cfg = load_config()
     configure_logger(run_id=cfg.run_id, model=cfg.model_name)
     log = get_logger(__name__)

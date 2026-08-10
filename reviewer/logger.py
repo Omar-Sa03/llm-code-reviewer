@@ -22,7 +22,6 @@ import sys
 from datetime import datetime, timezone
 from typing import Any
 
-
 _RUN_ID: str = "unknown"
 _MODEL: str = "unknown"
 

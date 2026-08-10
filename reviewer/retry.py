@@ -13,9 +13,10 @@ Usage:
 """
 from __future__ import annotations
 
-import time
 import logging
-from typing import Callable, Type, Tuple, TypeVar
+import time
+from collections.abc import Callable
+from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ def retry_with_backoff(
     retries: int = 3,
     base_delay: float = 2.0,
     jitter: float = 0.5,
-    retriable_exceptions: Tuple[Type[Exception], ...] = (Exception,),
+    retriable_exceptions: tuple[type[Exception], ...] = (Exception,),
 ) -> T:
     """
     Call ``fn`` up to ``retries`` times, doubling the delay between each attempt

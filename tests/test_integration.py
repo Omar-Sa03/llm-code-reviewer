@@ -15,15 +15,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from reviewer.diff_parser import DiffChunk, parse_diff, should_skip
 from reviewer.confidence_filter import filter_issues
-from reviewer.prompt import build_summary, SYSTEM_PROMPT
-from reviewer.llm_client import _parse_json_response
-from reviewer.deduplicator import deduplicate, fingerprint_issue
 from reviewer.cost_estimator import estimate_cost
-from reviewer.retry import retry_with_backoff, RetryExhausted
+from reviewer.deduplicator import deduplicate, fingerprint_issue
+from reviewer.diff_parser import parse_diff, should_skip
+from reviewer.llm_client import _parse_json_response
 from reviewer.metrics import Metrics
-
+from reviewer.prompt import SYSTEM_PROMPT, build_summary
+from reviewer.retry import RetryExhausted, retry_with_backoff
 
 # ── Sample data ──────────────────────────────────────────────────────────────
 
@@ -94,8 +93,8 @@ def test_build_summary_format():
         {"severity": "suggestion", "file_path": "y.py"},
     ]
     summary = build_summary(issues, files_reviewed=3, skipped=1)
-    assert "LLM Code Review" in summary
-    assert "Files reviewed" in summary
+    assert "Code Review Summary" in summary
+    assert "Reviewed" in summary
     assert "x.py" in summary
 
 

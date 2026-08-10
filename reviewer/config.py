@@ -48,7 +48,7 @@ def load_config() -> Config:
     def _require(name: str) -> str:
         value = os.environ.get(name, "").strip()
         if not value:
-            raise EnvironmentError(
+            raise OSError(
                 f"Required environment variable '{name}' is not set or empty."
             )
         return value
@@ -61,7 +61,7 @@ def load_config() -> Config:
         try:
             return int(raw)
         except ValueError:
-            raise EnvironmentError(
+            raise OSError(
                 f"Environment variable '{name}' must be an integer, got: {raw!r}"
             )
 
@@ -70,7 +70,7 @@ def load_config() -> Config:
         try:
             return float(raw)
         except ValueError:
-            raise EnvironmentError(
+            raise OSError(
                 f"Environment variable '{name}' must be a float, got: {raw!r}"
             )
 
